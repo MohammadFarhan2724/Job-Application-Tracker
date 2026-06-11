@@ -19,11 +19,13 @@ const useSchema = mongoose.Schema({
     }
 }, {timestamps : true}) // It automatically adds created at field
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
+useSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+    try {
+        this.password = await bcrypt.hash(this.password, 10)
+    } catch (err){
+        throw err;
+    }
 });
 
 const User = mongoose.model('User', useSchema)
