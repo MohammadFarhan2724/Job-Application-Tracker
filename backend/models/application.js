@@ -24,8 +24,8 @@ const useSchema = mongoose.Schema({
     },
     jobStatus : {
         type : String,
-        enum : ['Saved', 'In Progress', 'Interviewing', 'Offer', 'Accepted', 'Rejected'],
-        default : 'Applied',
+        enum : ['Saved', 'In Progress', 'Interviewing', 'Offer', 'Accepted', 'Rejected','Applied'],
+        default : 'Saved',
         required : true
     },
     jobSaved : {

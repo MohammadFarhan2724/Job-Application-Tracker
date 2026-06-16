@@ -2,7 +2,10 @@ const Application = require('../models/application')
 
 const createApplication = async (req, res) => {
     try{
-        const application = await Application.create(req.body)
+        const application = await Application.create({
+            ...req.body,
+            userId:req.user.id
+        })
 
         res.status(201).json(application)
     } catch (error){
