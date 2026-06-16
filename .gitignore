@@ -5,3 +5,6 @@ dist/
 build/
 .vscode/
 *.log
+backend/package-lock.json
+backend/package.json
+backend/node_modules/.package-lock.json
