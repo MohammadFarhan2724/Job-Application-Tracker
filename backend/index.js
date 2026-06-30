@@ -12,7 +12,7 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-app.use("/api/application", applicationRoutes)
+app.use("/api/applications", applicationRoutes)
 app.use("/api/auth", authRoutes)
 
 mongoose
