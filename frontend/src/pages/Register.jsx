@@ -1,8 +1,38 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router';
+import { useMutation } from '@tanstack/react-query';
+import api from '../api/axios';
 import '../index.css';
 
 function Register() {
   const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const navigate = useNavigate();
+
+  const registerMutation = useMutation({
+    mutationFn: async (newUser) => {
+      const response = await api.post('/auth/register', newUser);
+      return response.data;
+    },
+    onSuccess: () => {
+      navigate('/login');
+    },
+    onError: (error) => {
+      setErrorMessage(
+        error.response?.data?.message || 'Registration failed. Please try again.'
+      );
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    registerMutation.mutate({ username, email, password });
+  };
 
   return (
     <div className="min-h-screen flex bg-[#FAF9F6]">
@@ -24,7 +54,6 @@ function Register() {
             Stop losing track in spreadsheets and email threads. See exactly where every application stands.
           </p>
 
-          {/* Signature element: status pill flow */}
           <div className="flex items-center gap-2">
             <span className="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 text-xs font-medium">Applied</span>
             <span className="text-slate-600 text-xs">&rarr;</span>
@@ -41,7 +70,6 @@ function Register() {
       <div className="w-full lg:w-7/12 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
 
-          {/* Mobile-only brand mark */}
           <div className="flex lg:hidden items-center gap-2 mb-10">
             <div className="w-8 h-8 rounded-md bg-[#16A34A] flex items-center justify-center">
               <span className="text-white font-bold text-sm">T</span>
@@ -52,12 +80,21 @@ function Register() {
           <h2 className="font-serif text-[#0F172A] text-3xl mb-2">Create your account</h2>
           <p className="text-[#64748B] text-sm mb-8">Start tracking your job applications in minutes.</p>
 
-          <form className="space-y-5">
+          {errorMessage && (
+            <p className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3.5 py-2.5">
+              {errorMessage}
+            </p>
+          )}
+
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label className="block text-xs font-medium text-[#0F172A] mb-1.5 tracking-wide">USERNAME</label>
               <input
                 type="text"
                 placeholder="johndoe"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
                 className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-[#0F172A] placeholder:text-slate-400 bg-white focus:outline-none focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 transition"
               />
             </div>
@@ -67,6 +104,9 @@ function Register() {
               <input
                 type="email"
                 placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-[#0F172A] placeholder:text-slate-400 bg-white focus:outline-none focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 transition"
               />
             </div>
@@ -77,6 +117,9 @@ function Register() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                   className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 pr-16 text-sm text-[#0F172A] placeholder:text-slate-400 bg-white focus:outline-none focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 transition"
                 />
                 <button
@@ -91,17 +134,18 @@ function Register() {
 
             <button
               type="submit"
-              className="w-full bg-[#16A34A] text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-[#15803D] active:scale-[0.99] transition"
+              disabled={registerMutation.isPending}
+              className="w-full bg-[#16A34A] text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-[#15803D] active:scale-[0.99] transition disabled:opacity-60"
             >
-              Create account
+              {registerMutation.isPending ? 'Creating account...' : 'Create account'}
             </button>
           </form>
 
           <p className="text-sm text-[#64748B] mt-8 text-center">
             Already have an account?{' '}
-            <a href="/login" className="text-[#0F172A] font-semibold hover:text-[#16A34A] transition">
+            <Link to="/login" className="text-[#0F172A] font-semibold hover:text-[#16A34A] transition">
               Log in
-            </a>
+            </Link>
           </p>
         </div>
       </div>
