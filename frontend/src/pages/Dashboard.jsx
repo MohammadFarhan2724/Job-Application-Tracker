@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import { useState } from 'react';
+import AddApplicationModal from '../components/AddApplicationModal';
 
 const statusStyles = {
   Saved: 'bg-slate-500/15 text-slate-300',
@@ -13,6 +15,7 @@ const statusStyles = {
 };
 
 const Dashboard = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { user, logout } = useAuth();
 
   const { data: applications = [], isLoading, isError, error } = useQuery({
@@ -37,6 +40,11 @@ const Dashboard = () => {
         >
           Logout
         </button>
+        <button onClick={() => setIsModalOpen(true)}
+          className="bg-orange-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition"
+          >
+            + Add Application
+          </button>
       </header>
 
       {isLoading && (
@@ -87,6 +95,7 @@ const Dashboard = () => {
           </table>
         </div>
       )}
+      {isModalOpen && <AddApplicationModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 };
