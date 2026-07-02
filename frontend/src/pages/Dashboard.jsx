@@ -87,7 +87,10 @@ const Dashboard = () => {
                 applications.map((app) => (
                   <tr
                     key={app._id}
-                    onClick={() => setSelectedApplication(app)}
+                    onClick={() =>{
+                      console.log('row clicked', app); 
+                      setSelectedApplication(app);
+                    }}
                     className="hover:bg-white/3 transition cursor-pointer"
                   >
                     <td className="px-6 py-4 text-sm font-semibold border-b border-slate-800">{app.companyName}</td>
