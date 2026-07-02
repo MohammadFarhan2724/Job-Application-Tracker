@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { useState } from 'react';
 import AddApplicationModal from '../components/AddApplicationModal';
+import ApplicationDetailModal from '../components/ApplicationDetailModal';
 
 const statusStyles = {
   Saved: 'bg-slate-500/15 text-slate-300',
@@ -15,6 +16,7 @@ const statusStyles = {
 };
 
 const Dashboard = () => {
+  const [selectedApplication, setSelectedApplication] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user, logout } = useAuth();
 
