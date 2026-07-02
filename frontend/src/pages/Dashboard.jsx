@@ -1,7 +1,7 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { useState } from 'react';
 import AddApplicationModal from '../components/AddApplicationModal';
 import ApplicationDetailModal from '../components/ApplicationDetailModal';
 
@@ -16,9 +16,9 @@ const statusStyles = {
 };
 
 const Dashboard = () => {
-  const [selectedApplication, setSelectedApplication] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { user, logout } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState(null);
 
   const { data: applications = [], isLoading, isError, error } = useQuery({
     queryKey: ['applications'],
@@ -31,24 +31,29 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 bg-[radial-gradient(ellipse_900px_500px_at_85%_-10%,rgba(255,107,74,0.18),transparent),radial-gradient(ellipse_700px_500px_at_0%_100%,rgba(45,212,191,0.12),transparent)]">
 
+      {/* Header */}
       <header className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 py-6 border-b border-slate-800 bg-slate-950/70 backdrop-blur-md">
         <h1 className="flex items-center gap-3 text-xl sm:text-2xl font-semibold tracking-tight">
           <span className="h-2 w-2 rounded-full bg-orange-500 shadow-[0_0_0_4px_rgba(255,107,74,0.18)]" />
           Welcome, {user?.username || 'User'}
         </h1>
-        <button
-          onClick={logout}
-          className="border border-slate-700 text-slate-100 px-5 py-2 rounded-lg text-sm font-medium hover:border-orange-500 hover:bg-orange-500/10 hover:-translate-y-0.5 transition focus-visible:outline-2 focus-visible:outline-orange-500"
-        >
-          Logout
-        </button>
-        <button onClick={() => setIsModalOpen(true)}
-          className="bg-orange-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition"
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-orange-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition"
           >
             + Add Application
           </button>
+          <button
+            onClick={logout}
+            className="border border-slate-700 text-slate-100 px-5 py-2 rounded-lg text-sm font-medium hover:border-orange-500 hover:bg-orange-500/10 hover:-translate-y-0.5 transition focus-visible:outline focus-visible:outline-orange-500"
+          >
+            Logout
+          </button>
+        </div>
       </header>
 
+      {/* States */}
       {isLoading && (
         <p className="px-6 sm:px-12 mt-12 text-slate-400 text-sm">Loading applications...</p>
       )}
@@ -59,6 +64,7 @@ const Dashboard = () => {
         </p>
       )}
 
+      {/* Table */}
       {!isLoading && !isError && (
         <div className="mx-6 sm:mx-12 mt-10 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
           <table className="w-full border-collapse">
@@ -79,7 +85,11 @@ const Dashboard = () => {
                 </tr>
               ) : (
                 applications.map((app) => (
-                  <tr key={app._id} className="hover:bg-white/3 transition">
+                  <tr
+                    key={app._id}
+                    onClick={() => setSelectedApplication(app)}
+                    className="hover:bg-white/3 transition cursor-pointer"
+                  >
                     <td className="px-6 py-4 text-sm font-semibold border-b border-slate-800">{app.companyName}</td>
                     <td className="px-6 py-4 text-sm border-b border-slate-800">{app.jobRole}</td>
                     <td className="px-6 py-4 text-sm border-b border-slate-800">
@@ -97,7 +107,19 @@ const Dashboard = () => {
           </table>
         </div>
       )}
-      {isModalOpen && <AddApplicationModal onClose={() => setIsModalOpen(false)} />}
+
+      {/* Modals */}
+      {isModalOpen && (
+        <AddApplicationModal onClose={() => setIsModalOpen(false)} />
+      )}
+
+      {selectedApplication && (
+        <ApplicationDetailModal
+          application={selectedApplication}
+          onClose={() => setSelectedApplication(null)}
+        />
+      )}
+
     </div>
   );
 };
