@@ -45,12 +45,7 @@ function AddApplicationModal({ onClose }) {
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-semibold text-slate-100">Add Application</h2>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-100 text-sm"
-          >
-            ✕
-          </button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-100 text-sm">✕</button>
         </div>
 
         {errorMessage && (
