@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css'
 import Register from './pages/Register.jsx';
-import Login from './pages/login.jsx';
-import Dashboard from './pages/dashboard.jsx';
+import Login from './pages/Login.jsx';
+import Dashboard from './pages/Dashboard.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { createRoot } from 'react-dom/client';
 import { StrictMode } from 'react';
