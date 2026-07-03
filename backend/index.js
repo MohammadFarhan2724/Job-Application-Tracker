@@ -10,9 +10,12 @@ const applicationRoutes = require('./routes/application.routes')
 
 const app = express()
 
-app.use(cors({
-  origin: process.env.FRONTEND_URL
-}))
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+);
 
 app.use(express.json())
 
@@ -24,6 +27,8 @@ mongoose
 .then(() => console.log("MongoDB Connected"))
 .catch((err) => console.log(err))
 
-app.listen(process.env.PORT || 3000, () => {
-    console.log(`Server listening on port 3000`)
-})
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
