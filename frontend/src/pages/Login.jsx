@@ -20,15 +20,22 @@ function Login() {
       return response.data;
     },
     onSuccess: (data) => {
-      // ASSUMPTION: backend returns { token, user: { username, email } }
-      // Verify against your actual auth.controller.js login response
       login(data.token, data.user);
       navigate('/dashboard');
     },
     onError: (error) => {
-      setErrorMessage(
-        error.response?.data?.message || 'Login failed. Please check your credentials.'
-      );
+      if (error.response) {
+        // Backend actually responded — this is a real auth error (401, 400, etc.)
+        setErrorMessage(
+          error.response.data?.message || 'Invalid email or password.'
+        );
+      } else if (error.code === 'ECONNABORTED') {
+        // Request timed out — likely a cold start
+        setErrorMessage('Server is waking up. Please try again in a few seconds.');
+      } else {
+        // No response received at all — network issue or server not reachable yet
+        setErrorMessage('Could not reach the server. Please try again in a few seconds.');
+      }
     },
   });
 
