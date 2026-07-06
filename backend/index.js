@@ -10,8 +10,6 @@ const applicationRoutes = require('./routes/application.routes')
 
 const app = express()
 
-const cors = require('cors');
-
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true, // needed if you're sending cookies/auth headers
