@@ -25,15 +25,12 @@ function Login() {
     },
     onError: (error) => {
       if (error.response) {
-        // Backend actually responded — this is a real auth error (401, 400, etc.)
         setErrorMessage(
           error.response.data?.message || 'Invalid email or password.'
         );
       } else if (error.code === 'ECONNABORTED') {
-        // Request timed out — likely a cold start
         setErrorMessage('Server is waking up. Please try again in a few seconds.');
       } else {
-        // No response received at all — network issue or server not reachable yet
         setErrorMessage('Could not reach the server. Please try again in a few seconds.');
       }
     },
@@ -46,72 +43,83 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#FAF9F6]">
+    <div className="min-h-screen flex bg-[#0A0F1C]">
 
       {/* Left branding panel — hidden on mobile */}
-      <div className="hidden lg:flex lg:w-5/12 bg-[#0F172A] relative overflow-hidden flex-col justify-between p-12">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-md bg-[#16A34A] flex items-center justify-center">
-            <span className="text-white font-bold text-sm">T</span>
+      <div className="hidden lg:flex lg:w-5/12 bg-[#0A0F1C] relative overflow-hidden flex-col justify-between p-12 route-grid border-r border-[#1E293B]">
+        <div className="flex items-center gap-2 animate-rise">
+          <div className="w-8 h-8 rounded-md bg-linear-to-br from-[#22C58B] to-[#0F9D74] flex items-center justify-center shadow-[0_0_20px_rgba(34,197,139,0.35)]">
+            <span className="text-white font-display font-bold text-sm">T</span>
           </div>
-          <span className="text-white font-medium text-sm tracking-wide">Trackr</span>
+          <span className="text-white font-mono text-sm tracking-widest uppercase">Trackr</span>
         </div>
 
-        <div>
-          <h1 className="font-serif text-white text-4xl leading-tight mb-4">
+        <div className="animate-rise">
+          <h1 className="font-display text-[#ECEFF4] text-4xl leading-tight mb-4">
             Every application,<br />one clear path.
           </h1>
-          <p className="text-slate-400 text-sm leading-relaxed max-w-xs mb-10">
+          <p className="text-[#8B94A8] text-sm leading-relaxed max-w-xs mb-12">
             Stop losing track in spreadsheets and email threads. See exactly where every application stands.
           </p>
 
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 text-xs font-medium">Applied</span>
-            <span className="text-slate-600 text-xs">&rarr;</span>
-            <span className="px-3 py-1.5 rounded-full bg-[#16A34A]/20 text-[#4ADE80] text-xs font-medium">Interview</span>
-            <span className="text-slate-600 text-xs">&rarr;</span>
-            <span className="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 text-xs font-medium">Offer</span>
+          {/* Route / waypoint signature element */}
+          <div className="relative pl-1">
+            <div className="absolute left-1.5 top-2 bottom-2 w-px bg-linear-to-b from-[#22C58B] via-[#22C58B]/40 to-[#1E293B]" />
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <span className="h-3 w-3 rounded-full bg-[#22C58B] ring-4 ring-[#22C58B]/15" />
+                <span className="text-xs font-mono uppercase tracking-[0.2em] text-[#ECEFF4]">Applied</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="h-3 w-3 rounded-full bg-[#22C58B] ring-4 ring-[#22C58B]/15" />
+                <span className="text-xs font-mono uppercase tracking-[0.2em] text-[#ECEFF4]">Interview</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="h-3 w-3 rounded-full border-2 border-[#374151] bg-[#0A0F1C]" />
+                <span className="text-xs font-mono uppercase tracking-[0.2em] text-[#8B94A8]">Offer</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <p className="text-slate-600 text-xs">&copy; 2026 Trackr</p>
+        <p className="text-[#8B94A8] text-xs font-mono">&copy; 2026 Trackr</p>
       </div>
 
       {/* Right form panel */}
-      <div className="w-full lg:w-7/12 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-sm">
+      <div className="w-full lg:w-7/12 flex items-center justify-center px-6 py-12 bg-[#F5F6F8]">
+        <div className="w-full max-w-sm animate-rise">
 
           <div className="flex lg:hidden items-center gap-2 mb-10">
-            <div className="w-8 h-8 rounded-md bg-[#16A34A] flex items-center justify-center">
-              <span className="text-white font-bold text-sm">T</span>
+            <div className="w-8 h-8 rounded-md bg-linear-to-br from-[#22C58B] to-[#0F9D74] flex items-center justify-center">
+              <span className="text-white font-display font-bold text-sm">T</span>
             </div>
-            <span className="text-[#0F172A] font-medium text-sm tracking-wide">Trackr</span>
+            <span className="text-[#0A0F1C] font-mono text-sm tracking-widest uppercase">Trackr</span>
           </div>
 
-          <h2 className="font-serif text-[#0F172A] text-3xl mb-2">Welcome Back !</h2>
-          <p className="text-[#64748B] text-sm mb-8">Start tracking your job applications in minutes.</p>
+          <h2 className="font-display text-[#0A0F1C] text-3xl mb-2">Welcome back.</h2>
+          <p className="text-[#6B7280] text-sm mb-8">Start tracking your job applications in minutes.</p>
 
           {errorMessage && (
-            <p className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3.5 py-2.5">
+            <p className="mb-5 text-sm text-[#B91C1C] bg-[#FEF2F2] border-l-4 border-[#EF4444] rounded-md px-4 py-3">
               {errorMessage}
             </p>
           )}
 
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-xs font-medium text-[#0F172A] mb-1.5 tracking-wide">EMAIL</label>
+              <label className="block text-xs font-mono uppercase tracking-widest text-[#0A0F1C] mb-1.5">Email</label>
               <input
                 type="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-[#0F172A] placeholder:text-slate-400 bg-white focus:outline-none focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 transition"
+                className="w-full border border-[#D1D5DB] rounded-lg px-3.5 py-2.5 text-sm text-[#0A0F1C] placeholder:text-[#9CA3AF] bg-white shadow-sm focus:outline-none focus:border-[#22C58B] focus:ring-4 focus:ring-[#22C58B]/15 transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#0F172A] mb-1.5 tracking-wide">PASSWORD</label>
+              <label className="block text-xs font-mono uppercase tracking-widest text-[#0A0F1C] mb-1.5">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -119,12 +127,12 @@ function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 pr-16 text-sm text-[#0F172A] placeholder:text-slate-400 bg-white focus:outline-none focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 transition"
+                  className="w-full border border-[#D1D5DB] rounded-lg px-3.5 py-2.5 pr-16 text-sm text-[#0A0F1C] placeholder:text-[#9CA3AF] bg-white shadow-sm focus:outline-none focus:border-[#22C58B] focus:ring-4 focus:ring-[#22C58B]/15 transition"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[#64748B] hover:text-[#0F172A] transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono uppercase tracking-wider text-[#6B7280] hover:text-[#0A0F1C] transition"
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
@@ -134,15 +142,15 @@ function Login() {
             <button
               type="submit"
               disabled={loginMutation.isPending}
-              className="w-full bg-[#16A34A] text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-[#15803D] active:scale-[0.99] transition disabled:opacity-60"
+              className="w-full bg-linear-to-r from-[#22C58B] to-[#0F9D74] text-white rounded-lg py-2.5 text-sm font-semibold shadow-lg shadow-[#22C58B]/25 hover:shadow-[#22C58B]/40 hover:-translate-y-0.5 active:translate-y-0 transition disabled:opacity-60 disabled:translate-y-0"
             >
-              {loginMutation.isPending ? 'Logging in...' : 'Login'}
+              {loginMutation.isPending ? 'Logging in…' : 'Login'}
             </button>
           </form>
 
-          <p className="text-sm text-[#64748B] mt-8 text-center">
+          <p className="text-sm text-[#6B7280] mt-8 text-center">
             Don't have an account?{' '}
-            <Link to="/register" className="text-[#0F172A] font-semibold hover:text-[#16A34A] transition">
+            <Link to="/register" className="text-[#0A0F1C] font-semibold hover:text-[#22C58B] transition">
               Register
             </Link>
           </p>
