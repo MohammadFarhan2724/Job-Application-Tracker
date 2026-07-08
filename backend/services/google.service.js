@@ -23,8 +23,39 @@ const getTokensFromCode = async (code) => {
     return tokens;
 };
 
+const getGmailMessages = async (user, query) => {
+    oauth2Client.setCredentials({
+        access_token: user.googleAccessToken,
+        refresh_token: user.googleRefreshToken
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    const listResponse = await gmail.users.messages.list({
+        userId: 'me',
+        q: query,
+        maxResults: 20
+    });
+
+    const messages = listResponse.data.messages || [];
+
+    const fullMessages = await Promise.all(
+        messages.map(async (msg) => {
+            const fullMsg = await gmail.users.messages.get({
+                userId: 'me',
+                id: msg.id,
+                format: 'full'
+            });
+            return fullMsg.data;
+        })
+    );
+
+    return fullMessages;
+};
+
 module.exports = {
     oauth2Client,
     getAuthUrl,
-    getTokensFromCode
+    getTokensFromCode,
+    getGmailMessages
 };
