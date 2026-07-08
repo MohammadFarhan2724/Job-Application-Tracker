@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import AddApplicationModal from '../components/AddApplicationModal';
 import ApplicationDetailModal from '../components/ApplicationDetailModal';
+import { connectGmail } from '../api/gmail.service';
 
 const statusStyles = {
   Saved: 'bg-slate-500/15 text-slate-300 border-slate-600/40',
@@ -28,6 +29,15 @@ const Dashboard = () => {
     },
   });
 
+  const handleConnectGmail = async () => {
+    try {
+        const url = await connectGmail();
+        window.location.href = url;
+    } catch (error) {
+        console.error('Failed to connect Gmail:', error);
+    }
+};
+
   return (
     <div className="min-h-screen bg-[#0A0F1C] text-[#ECEFF4] route-grid">
 
@@ -38,19 +48,25 @@ const Dashboard = () => {
           Welcome, {user?.username || 'User'}
         </h1>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-[#FF6B4A] text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#E85A3A] shadow-lg shadow-[#FF6B4A]/20 hover:-translate-y-0.5 transition"
-          >
-            + Add Application
-          </button>
-          <button
-            onClick={logout}
-            className="border border-[#1E293B] text-[#ECEFF4] px-5 py-2 rounded-lg text-sm font-medium hover:border-[#22C58B] hover:bg-[#22C58B]/10 hover:-translate-y-0.5 transition focus-visible:outline focus-visible:outline-[#22C58B]"
-          >
-            Logout
-          </button>
-        </div>
+  <button
+    onClick={() => setIsModalOpen(true)}
+    className="bg-[#FF6B4A] text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#E85A3A] shadow-lg shadow-[#FF6B4A]/20 hover:-translate-y-0.5 transition"
+  >
+    + Add Application
+  </button>
+  <button
+    onClick={handleConnectGmail}
+    className="border border-[#22C58B]/40 text-[#4ADE80] px-5 py-2 rounded-lg text-sm font-medium hover:bg-[#22C58B]/10 hover:-translate-y-0.5 transition"
+  >
+    Connect Gmail
+  </button>
+  <button
+    onClick={logout}
+    className="border border-[#1E293B] text-[#ECEFF4] px-5 py-2 rounded-lg text-sm font-medium hover:border-[#22C58B] hover:bg-[#22C58B]/10 hover:-translate-y-0.5 transition focus-visible:outline focus-visible:outline-[#22C58B]"
+  >
+    Logout
+  </button>
+</div>
       </header>
 
       {/* States */}
