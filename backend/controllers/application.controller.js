@@ -73,10 +73,26 @@ const deleteApplication = async (req, res) => {
     }
 }
 
+const checkDuplicate = async (userId, company, role, appliedDate) => {
+    try {
+        const application = await Application.findOne({
+            userId,
+            company,
+            role,
+            appliedDate
+        });
+
+        return application;
+    } catch (error) {
+        throw error;
+    }
+};
+
 module.exports = {
   createApplication,
   getApplication,
   getApplicationById,
   updateApplication,
   deleteApplication,
+  checkDuplicate,
 };
