@@ -7,6 +7,7 @@ const cors = require('cors')
 
 const authRoutes = require('./routes/auth.routes')
 const applicationRoutes = require('./routes/application.routes')
+const importRoutes = require('./routes/import.routes')
 
 const app = express()
 
@@ -19,6 +20,7 @@ app.use(express.json())
 
 app.use("/api/applications", applicationRoutes)
 app.use("/api/auth", authRoutes)
+app.use("/api/import", importRoutes)
 
 mongoose
 .connect(process.env.MONGO_URI)
