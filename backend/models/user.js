@@ -16,6 +16,30 @@ const useSchema = mongoose.Schema({
         type : String,
         required : true,
         unique : true
+    },
+    googleId: {
+        type: String,
+        default: null
+    },
+
+    googleEmail: {
+        type: String,
+        default: null
+    },
+
+    googleAccessToken: {
+        type: String,
+        default: null
+    },
+
+    googleRefreshToken: {
+        type: String,
+        default: null
+    },
+
+    gmailConnected: {
+        type: Boolean,
+        default: false
     }
 }, {timestamps : true}) // It automatically adds created at field
 
