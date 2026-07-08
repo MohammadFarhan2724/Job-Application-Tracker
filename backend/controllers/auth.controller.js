@@ -1,6 +1,7 @@
 const User = require ('../models/user')
 const bcrypt = require ('bcrypt')
 const jwt = require ('jsonwebtoken')
+const { getAuthUrl, getTokensFromCode } = require('../services/google.service')
 
 const register = async (req, res) => {
     try {
@@ -53,7 +54,37 @@ const login = async (req, res) => {
   }
 };
 
+const googleAuthRedirect = async (req, res) => {
+    try {
+        const url = getAuthUrl();
+        res.redirect(url);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const googleAuthCallback = async (req, res) => {
+    try {
+        const { code } = req.query;
+
+        if (!code) {
+            return res.status(400).json({ message: "Authorization code missing" });
+        }
+
+        const tokens = await getTokensFromCode(code);
+
+        // We'll fill this part in next step —
+        // it needs to know WHICH user in our database this belongs to
+
+        res.redirect(`${process.env.CLIENT_URL}/dashboard?gmail=connected`);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
   register,
   login,
+  googleAuthRedirect,
+  googleAuthCallback,
 };
