@@ -73,15 +73,13 @@ const deleteApplication = async (req, res) => {
     }
 }
 
-const checkDuplicate = async (userId, company, role, appliedDate) => {
+const checkDuplicate = async (userId, companyName, jobRole) => {
     try {
         const application = await Application.findOne({
             userId,
-            company,
-            role,
-            appliedDate
+            companyName,
+            jobRole
         });
-
         return application;
     } catch (error) {
         throw error;
