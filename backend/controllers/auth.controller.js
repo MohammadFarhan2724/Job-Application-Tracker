@@ -56,8 +56,9 @@ const login = async (req, res) => {
 
 const googleAuthRedirect = async (req, res) => {
     try {
-        const url = getAuthUrl();
-        res.redirect(url);
+        const userId = req.user.id;
+        const url = getAuthUrl(userId);
+        res.status(200).json({ url });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -65,16 +66,23 @@ const googleAuthRedirect = async (req, res) => {
 
 const googleAuthCallback = async (req, res) => {
     try {
-        const { code } = req.query;
+        const { code, state } = req.query;
 
-        if (!code) {
-            return res.status(400).json({ message: "Authorization code missing" });
+        if (!code || !state) {
+            return res.status(400).json({ message: "Authorization code or state missing" });
         }
 
         const tokens = await getTokensFromCode(code);
 
-        // We'll fill this part in next step —
-        // it needs to know WHICH user in our database this belongs to
+        const user = await User.findById(state);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        user.googleAccessToken = tokens.access_token;
+        user.googleRefreshToken = tokens.refresh_token;
+        user.gmailConnected = true;
+        await user.save();
 
         res.redirect(`${process.env.CLIENT_URL}/dashboard?gmail=connected`);
     } catch (error) {
