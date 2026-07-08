@@ -6,13 +6,14 @@ const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_REDIRECT_URI
 );
 
-const getAuthUrl = () => {
+const getAuthUrl = (state) => {
     const scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
 
     const url = oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: scopes,
-        prompt: 'consent'
+        prompt: 'consent',
+        state: state
     });
 
     return url;
