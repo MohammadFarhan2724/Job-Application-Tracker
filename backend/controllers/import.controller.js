@@ -20,6 +20,11 @@ const STATUS_MAP = {
 // processed after "Interview Scheduled" won't reset it back).
 const STATUS_ORDER = ['Saved', 'Applied', 'In Progress', 'Interviewing', 'Offer', 'Accepted', 'Rejected'];
 
+// Narrowed search query — uses exact quoted phrases instead of loose single-word
+// OR matching, so we stop pulling in unrelated newsletters/spam that happen to
+// contain words like "offer" or "application" somewhere in the body.
+const GMAIL_SEARCH_QUERY = 'newer_than:90d ("thank you for applying" OR "your application" OR "next stage" OR "skills interview" OR "online assessment" OR "we can confirm" OR "unfortunately") -unsubscribe';
+
 const importGmailApplications = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -37,13 +42,13 @@ const importGmailApplications = async (req, res) => {
 
         let messages;
         try {
-            messages = await getGmailMessages(user, 'newer_than:90d (application OR interview OR assessment OR offer)');
+            messages = await getGmailMessages(user, GMAIL_SEARCH_QUERY);
         } catch (err) {
             // Access token likely expired — refresh using the stored refresh token, then retry once
             const { credentials } = await oauth2Client.refreshAccessToken();
             user.googleAccessToken = credentials.access_token;
             await user.save();
-            messages = await getGmailMessages(user, 'newer_than:90d (application OR interview OR assessment OR offer)');
+            messages = await getGmailMessages(user, GMAIL_SEARCH_QUERY);
         }
 
         let created = 0, updated = 0, skipped = 0;
