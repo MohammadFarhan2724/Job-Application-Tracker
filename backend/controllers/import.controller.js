@@ -51,6 +51,14 @@ const importGmailApplications = async (req, res) => {
         for (const message of messages) {
             const parsed = parseEmail(message);
 
+            // TEMP DEBUG — remove after diagnosing
+            const subject = message.payload.headers.find(h => h.name === 'Subject')?.value;
+            const from = message.payload.headers.find(h => h.name === 'From')?.value;
+            console.log('---');
+            console.log('Subject:', subject);
+            console.log('From:', from);
+            console.log('Parsed result:', parsed);
+
             if (!parsed || !parsed.company || !parsed.role) {
                 skipped++;
                 continue;
