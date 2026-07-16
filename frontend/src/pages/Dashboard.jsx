@@ -108,7 +108,7 @@ const Dashboard = () => {
 
       <div className="absolute -top-32 left-1/3 h-96 w-96 rounded-full bg-green-500/10 blur-[160px]" />
 
-      <div className="absolute top-60 right-0 h-[420px] w-[420px] rounded-full bg-indigo-500/10 blur-[180px]" />
+      <div className="absolute top-60 right-0 h-105 w-105 rounded-full bg-indigo-500/10 blur-[180px]" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 py-10">
 
@@ -150,7 +150,7 @@ const Dashboard = () => {
 
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-3 font-semibold text-white shadow-lg shadow-green-500/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-green-500/40"
+              className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-green-500 to-emerald-600 px-5 py-3 font-semibold text-white shadow-lg shadow-green-500/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-green-500/40"
             >
               <Plus size={18} />
               Add Application
@@ -225,7 +225,7 @@ const Dashboard = () => {
         )}
 
         {/* Content Card */}
-        <div className="mt-10 rounded-[24px] border border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in duration-500">
+        <div className="mt-10 rounded-3xl border border-white/10 bg-white/4 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in duration-500">
 
           {/* Loading State */}
 
@@ -358,7 +358,7 @@ const Dashboard = () => {
                   onClick={() =>
                     window.location.reload()
                   }
-                  className="mt-8 rounded-xl bg-gradient-to-r from-red-500 to-rose-500 px-6 py-3 font-semibold text-white shadow-lg transition hover:-translate-y-1"
+                  className="mt-8 rounded-xl bg-linear-to-r from-red-500 to-rose-500 px-6 py-3 font-semibold text-white shadow-lg transition hover:-translate-y-1"
                 >
                   Retry
                 </button>
@@ -410,7 +410,7 @@ const Dashboard = () => {
 
                     <div className="flex flex-col items-center justify-center px-8 text-center">
 
-                      <div className="flex h-28 w-28 items-center justify-center rounded-[28px] border border-green-500/20 bg-gradient-to-br from-green-500/20 to-emerald-600/10 shadow-lg shadow-green-500/10">
+                      <div className="flex h-28 w-28 items-center justify-center rounded-[28px] border border-green-500/20 bg-linear-to-br from-green-500/20 to-emerald-600/10 shadow-lg shadow-green-500/10">
 
                         <BriefcaseBusiness
                           size={48}
@@ -434,7 +434,7 @@ const Dashboard = () => {
 
                       <button
                         onClick={() => setIsModalOpen(true)}
-                        className="mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-3 font-semibold text-white shadow-lg shadow-green-500/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-green-500/40"
+                        className="mt-8 inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-green-500 to-emerald-600 px-6 py-3 font-semibold text-white shadow-lg shadow-green-500/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-green-500/40"
                       >
                         <Plus size={18} />
 
@@ -458,7 +458,7 @@ const Dashboard = () => {
                       console.log('row clicked', app);
                       setSelectedApplication(app);
                     }}
-                    className="group cursor-pointer border-b border-white/5 transition-all duration-300 hover:bg-white/[0.04]"
+                    className="group cursor-pointer border-b border-white/5 transition-all duration-300 hover:bg-white/4"
                   >
 
                     {/* Company */}
@@ -467,7 +467,7 @@ const Dashboard = () => {
 
                       <div className="flex items-center gap-4">
 
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-green-500/20 text-lg font-bold text-white ring-1 ring-white/10">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500/20 to-green-500/20 text-lg font-bold text-white ring-1 ring-white/10">
 
                           {app.companyName?.charAt(0)?.toUpperCase()}
 
@@ -575,7 +575,7 @@ const Dashboard = () => {
 
         <div className="mt-12">
 
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="h-px w-full bg-linear-to-r from-transparent via-white/10 to-transparent" />
 
           <p className="mt-6 text-center text-sm text-slate-500">
 
