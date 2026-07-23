@@ -1,4 +1,4 @@
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
 const getHeader = (headers, name) => headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value || '';
 
@@ -36,63 +36,60 @@ Determine if this email is related to a job application the person submitted (ap
 
 Do NOT count as a job application email: job alerts/recommendations ("jobs you may be interested in"), newsletters, course/webinar promotions, freelance platform notifications, or generic marketing.
 
-Respond with ONLY raw JSON, no markdown formatting, no code fences, no explanation. Use exactly this shape:
-
-If it IS a job application email:
-{"isJobApplication": true, "company": "<company name>", "role": "<job title>", "status": "<one of: Applied, Online Assessment, Interviewing, Offer, Rejected>"}
-
-If it is NOT a job application email:
-{"isJobApplication": false}
-
 Rules:
 - "company" must be the actual hiring company, never a platform/ATS name (LinkedIn, Workday, Greenhouse, etc. are never the company).
 - "role" must be a clean job title only, no extra words like "our" or trailing sentence fragments.
 - "status" must map any wording (e.g. "next stage", "please select a slot", "interview confirmed") to the closest of: Applied, Online Assessment, Interviewing, Offer, Rejected.
-- If you cannot confidently determine both company and role, respond with {"isJobApplication": false}.`;
+- If you cannot confidently determine both company and role, set isJobApplication to false.`;
 
-const callClaude = async (subject, from, body) => {
+const callGemini = async (subject, from, body) => {
     const userMessage = `Subject: ${subject}\nFrom: ${from}\nBody:\n${body.slice(0, 6000)}`;
 
-    const response = await fetch(ANTHROPIC_API_URL, {
+    const response = await fetch(`${GEMINI_API_URL}?key=${process.env.GEMINI_API_KEY}`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.ANTHROPIC_API_KEY,
-            'anthropic-version': '2023-06-01',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 300,
-            system: SYSTEM_PROMPT,
-            messages: [{ role: 'user', content: userMessage }],
+            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+            generationConfig: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: 'OBJECT',
+                    properties: {
+                        isJobApplication: { type: 'BOOLEAN' },
+                        company: { type: 'STRING' },
+                        role: { type: 'STRING' },
+                        status: { type: 'STRING', enum: ['Applied', 'Online Assessment', 'Interviewing', 'Offer', 'Rejected'] },
+                    },
+                    required: ['isJobApplication'],
+                },
+            },
         }),
     });
 
     if (!response.ok) {
         const errText = await response.text();
-        throw new Error(`Claude API error (${response.status}): ${errText}`);
+        throw new Error(`Gemini API error (${response.status}): ${errText}`);
     }
 
     const data = await response.json();
-    const text = data.content?.[0]?.text || '';
-    const cleaned = text.replace(/```json|```/g, '').trim();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
 
     try {
-        return JSON.parse(cleaned);
+        return JSON.parse(text);
     } catch (err) {
-        console.log('Failed to parse Claude response as JSON:', text);
+        console.log('Failed to parse Gemini response as JSON:', text);
         return { isJobApplication: false };
     }
 };
 
-// Main entry point — now async, since it calls the Claude API.
 const parseEmail = async (gmailMessage) => {
     const headers = gmailMessage.payload.headers;
     const subject = getHeader(headers, 'Subject');
     const from = getHeader(headers, 'From');
     const body = getBody(gmailMessage.payload);
 
-    const result = await callClaude(subject, from, body);
+    const result = await callGemini(subject, from, body);
 
     if (!result.isJobApplication || !result.company || !result.role) return null;
 
