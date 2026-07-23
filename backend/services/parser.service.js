@@ -1,10 +1,29 @@
 // Domains that are platforms/ATS providers, not the actual hiring company —
-// for these, we must extract the company name from the email BODY instead of the sender.
-const PLATFORM_DOMAINS = ['linkedin.com', 'eightfold.ai', 'myworkdayjobs.com', 'greenhouse.io', 'lever.co', 'indeed.com'];
+// for these, extract the company name from the email BODY instead of the sender.
+const PLATFORM_DOMAINS = [
+    'linkedin.com',
+    'eightfold.ai',
+    'myworkdayjobs.com',
+    'myworkday.com',
+    'workday.com',
+    'greenhouse.io',
+    'lever.co',
+    'indeed.com',
+    'smartrecruiters.com',
+    'icims.com',
+];
+
+// Generic subdomain/local-part fragments that are NOT real company names —
+// e.g. "us.somecompany.com" should extract "somecompany", not "us".
+const GENERIC_DOMAIN_LABELS = [
+    'mail', 'no-reply', 'noreply', 'notifications', 'careers', 'jobs',
+    'recruiting', 'talent', 'hr', 'us', 'in', 'eu', 'apac', 'na', 'uk',
+    'email', 'notification', 'info', 'support', 'update', 'updates',
+];
 
 // --- Status detection (checked in priority order — most specific first) ---
 const STATUS_RULES = [
-    { status: 'Interview Scheduled', patterns: [/interview.{0,40}(is all set|has been confirmed|is confirmed)/i, /we can confirm.{0,40}interview/i] },
+    { status: 'Interview Scheduled', patterns: [/interview.{0,40}(is all set|has been confirmed|is confirmed|has been successfully scheduled)/i, /we can confirm.{0,40}interview/i] },
     { status: 'Interview - Action Required', patterns: [/next stage/i, /pick (three|a) slot/i, /select.{0,20}(slot|time)/i] },
     { status: 'Online Assessment', patterns: [/online assessment/i, /skills? assessment/i, /begin your assessment/i] },
     { status: 'Rejected', patterns: [/unfortunately/i, /not moving forward/i, /decided not to proceed/i, /haven.?t met the requirements/i] },
@@ -24,21 +43,29 @@ const detectStatus = (text) => {
     for (const rule of STATUS_RULES) {
         if (rule.patterns.some((p) => p.test(text))) return rule.status;
     }
-    return null; // not a job-related email — caller should skip it
+    return null;
 };
 
 // --- Role extraction ---
+// Stops at sentence-ending punctuation OR the first "linking verb" that signals
+// we've left the job title (e.g. "Custom Software Engineer is all set" stops before "is").
+const ROLE_STOP_WORDS = '(?:is|has|was|were|have|will|for|at|with|through|and|role|position)';
+const ROLE_TERMINATOR = `(?=[!.,;\\n(]|\\s+${ROLE_STOP_WORDS}\\b)`;
+
 const ROLE_PATTERNS = [
-    /role of ([A-Za-z0-9\/&,\-\s]+?)[!.,\n(]/i,                    // Accenture-style
-    /position of ([A-Za-z0-9\/&,\-\s]+?)[,.\n(]/i,                 // Microsoft rejection-style
-    /application for ([A-Za-z0-9\/&,\-\s]+?)\s*\(Job number/i,     // Microsoft applied-style
-    /application for ([A-Za-z0-9\/&,\-\s]+?)[,.\n(]/i,             // generic fallback
+    new RegExp(`role of ([A-Za-z0-9/&,\\-\\s]{2,60}?)${ROLE_TERMINATOR}`, 'i'),
+    new RegExp(`position of ([A-Za-z0-9/&,\\-\\s]{2,60}?)${ROLE_TERMINATOR}`, 'i'),
+    new RegExp(`application for ([A-Za-z0-9/&,\\-\\s]{2,60}?)\\s*\\(Job number`, 'i'),
+    new RegExp(`application for ([A-Za-z0-9/&,\\-\\s]{2,60}?)${ROLE_TERMINATOR}`, 'i'),
 ];
 
 const extractRole = (text) => {
     for (const pattern of ROLE_PATTERNS) {
         const match = text.match(pattern);
-        if (match) return match[1].trim();
+        if (match) {
+            const role = match[1].trim();
+            if (role.length >= 3 && !/^(our|the|a|an)$/i.test(role)) return role;
+        }
     }
     return null;
 };
@@ -52,11 +79,27 @@ const extractCompanyFromSender = (fromHeader) => {
 
     if (PLATFORM_DOMAINS.some((platform) => domain.includes(platform))) return null;
 
-    let name = domain.split('.')[0];
-    if (['mail', 'no-reply', 'noreply', 'notifications', 'careers', 'jobs'].includes(name.toLowerCase())) {
-        name = domain.split('.')[1] || name;
+    // Walk domain labels left-to-right, skip generic ones
+    // e.g. "us.notifications.accenture.com" -> skip "us", "notifications" -> use "accenture"
+    const labels = domain.split('.');
+    let name = null;
+    for (const label of labels) {
+        const clean = label.toLowerCase();
+        if (!GENERIC_DOMAIN_LABELS.includes(clean) && clean.length > 2) {
+            name = label;
+            break;
+        }
     }
+    if (!name) return null;
+
     return name.charAt(0).toUpperCase() + name.slice(1);
+};
+
+// Generic fallback for ANY platform sender (not just LinkedIn) — looks for
+// "<Company> Recruitment Team" / "Careers Team" / "Hiring Team" signatures.
+const extractCompanyFromBody = (text) => {
+    const match = text.match(/([A-Z][A-Za-z0-9&.\-\s]{1,40})\s+(Recruitment Team|Careers Team|Talent Acquisition|Hiring Team)/);
+    return match ? match[1].trim() : null;
 };
 
 const extractLinkedInDetails = (text) => {
@@ -117,11 +160,19 @@ const parseEmail = (gmailMessage) => {
     let company = extractCompanyFromSender(from);
     let role = extractRole(fullText);
 
-    if (!company && from.toLowerCase().includes('linkedin.com')) {
-        const linkedin = extractLinkedInDetails(fullText);
-        company = linkedin.company;
-        role = role || linkedin.role;
+    const isPlatformSender = PLATFORM_DOMAINS.some((p) => from.toLowerCase().includes(p));
+
+    if (!company && isPlatformSender) {
+        if (from.toLowerCase().includes('linkedin.com')) {
+            const linkedin = extractLinkedInDetails(fullText);
+            company = linkedin.company;
+            role = role || linkedin.role;
+        } else {
+            company = extractCompanyFromBody(fullText);
+        }
     }
+
+    if (!company || !role) return null; // don't create garbage rows — skip instead
 
     return { company, role, status, subject };
 };
