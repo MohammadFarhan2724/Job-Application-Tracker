@@ -23,7 +23,7 @@ const STATUS_ORDER = ['Saved', 'Applied', 'In Progress', 'Interviewing', 'Offer'
 // Narrowed search query — uses exact quoted phrases instead of loose single-word
 // OR matching, so we stop pulling in unrelated newsletters/spam that happen to
 // contain words like "offer" or "application" somewhere in the body.
-const GMAIL_SEARCH_QUERY = 'newer_than:90d ("thank you for applying" OR "your application" OR "next stage" OR "skills interview" OR "online assessment" OR "we can confirm" OR "unfortunately") -unsubscribe';
+const GMAIL_SEARCH_QUERY = 'newer_than:90d ("thank you for applying" OR "your application" OR "next stage" OR "skills interview" OR "online assessment" OR "we can confirm" OR "unfortunately") -"job alert" -"jobs you may be interested"';
 
 const importGmailApplications = async (req, res) => {
     try {
