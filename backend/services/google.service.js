@@ -35,7 +35,7 @@ const getGmailMessages = async (user, query) => {
     const listResponse = await gmail.users.messages.list({
         userId: 'me',
         q: query,
-        maxResults: 50   // was 20 — widened so we don't miss real applications buried past the first 20 results
+        maxResults: 20  
     });
 
     const messages = listResponse.data.messages || [];
