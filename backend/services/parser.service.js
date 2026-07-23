@@ -83,13 +83,36 @@ const callGemini = async (subject, from, body) => {
     }
 };
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Free tier allows 15 requests/minute — pace calls so we never exceed that,
+// and automatically retry once if we still get rate-limited.
+const MIN_DELAY_BETWEEN_CALLS_MS = 4500; // ~13/min, safely under the 15/min cap
+
+const callGeminiWithRetry = async (subject, from, body) => {
+    try {
+        return await callGemini(subject, from, body);
+    } catch (err) {
+        const match = err.message.match(/"retryDelay":\s*"(\d+)s"/);
+        if (match) {
+            const waitMs = (parseInt(match[1], 10) + 1) * 1000; // +1s buffer
+            console.log(`Rate limited — waiting ${waitMs}ms before retry`);
+            await sleep(waitMs);
+            return await callGemini(subject, from, body); // one retry attempt
+        }
+        throw err; // not a rate-limit error — bubble up normally
+    }
+};
+
 const parseEmail = async (gmailMessage) => {
     const headers = gmailMessage.payload.headers;
     const subject = getHeader(headers, 'Subject');
     const from = getHeader(headers, 'From');
     const body = getBody(gmailMessage.payload);
 
-    const result = await callGemini(subject, from, body);
+    await sleep(MIN_DELAY_BETWEEN_CALLS_MS); // pace every call, not just retries
+
+    const result = await callGeminiWithRetry(subject, from, body);
 
     if (!result.isJobApplication || !result.company || !result.role) return null;
 
