@@ -3,10 +3,10 @@
 // ============================================================
 const STATUS_RULES = [
     { status: 'Interview Scheduled', patterns: [/interview.{0,40}(is all set|has been confirmed|is confirmed|has been successfully scheduled)/i, /we can confirm.{0,40}interview/i] },
-    { status: 'Interview - Action Required', patterns: [/next stage/i, /pick (three|a) slot/i, /select.{0,20}(slot|time)/i] },
-    { status: 'Online Assessment', patterns: [/online assessment/i, /skills? assessment/i, /begin your assessment/i] },
-    { status: 'Rejected', patterns: [/unfortunately/i, /not moving forward/i, /decided not to proceed/i, /haven.?t met the requirements/i] },
-    { status: 'Offer', patterns: [/pleased to offer/i, /offer of employment/i, /job offer/i] },
+    { status: 'Interview - Action Required', patterns: [/next stage/i, /pick (three|a) slot/i, /select.{0,20}(slot|time)/i, /schedule.{0,20}interview/i] },
+    { status: 'Online Assessment', patterns: [/online assessment/i, /skills? assessment/i, /begin your assessment/i, /take.{0,10}(the |your )?assessment/i] },
+    { status: 'Rejected', patterns: [/unfortunately/i, /not moving forward/i, /decided not to proceed/i, /haven.?t met the requirements/i, /will not be moving forward/i, /other candidates/i] },
+    { status: 'Offer', patterns: [/pleased to offer/i, /offer of employment/i, /job offer/i, /extend.{0,15}offer/i] },
     {
         status: 'Applied',
         patterns: [
@@ -14,6 +14,12 @@ const STATUS_RULES = [
             /thank you for (applying|taking the time to submit)/i,
             /application (has been )?received/i,
             /your application (was sent to|to)/i,
+            /application is incomplete/i,
+            /application (status|update)/i,
+            /we (have )?received your application/i,
+            /application.{0,15}(under review|in review|is being reviewed)/i,
+            /successfully applied/i,
+            /confirm(ing|ation of|s)? your application/i,
         ]
     },
 ];
@@ -25,20 +31,27 @@ const detectStatus = (text) => {
     return null;
 };
 
-// A cleaned-up role string must pass this sanity check, or we treat
-// extraction as failed rather than saving garbage like "our Software Engineer".
 const FILLER_LEAD_WORDS = /^(our|the|a|an|for|with|your|new|this)\s+/i;
 
 const cleanRole = (raw) => {
     if (!raw) return null;
     let role = raw.trim().replace(/\s+/g, ' ');
-    // strip a leading filler word if present, then re-check (handles "our Software Engineer")
     role = role.replace(FILLER_LEAD_WORDS, '').trim();
     if (role.length < 3 || role.length > 80) return null;
-    if (FILLER_LEAD_WORDS.test(role)) return null; // still starts with filler after one strip -> reject
-    // must contain at least one letter and look like a title, not a sentence fragment
+    if (FILLER_LEAD_WORDS.test(role)) return null;
     if (!/^[A-Za-z]/.test(role)) return null;
     return role;
+};
+
+// Last-resort fallback: derive a rough role from the subject line itself,
+// so we still create a row (with an imperfect role) instead of skipping entirely.
+const fallbackRoleFromSubject = (subject) => {
+    let s = subject
+        .replace(/^(your|update:|re:|fwd:)\s*/i, '')
+        .replace(/\s*[-–—|]\s*.*/,'') // cut off after a dash/pipe separator, keep the front part
+        .trim();
+    const cleaned = cleanRole(s);
+    return cleaned || (s.length >= 3 && s.length <= 80 ? s : null);
 };
 
 // ============================================================
@@ -50,33 +63,28 @@ const parseLinkedInEmail = (subject, body) => {
     const status = detectStatus(fullText);
     if (!status) return null;
 
-    // Format A: "Your application to <Role> at <Company>" (current LinkedIn format)
     let match = fullText.match(/your application to (.+?) at ([^\n.!]+)/i);
     if (match) {
-        const role = cleanRole(match[1]);
+        const role = cleanRole(match[1]) || fallbackRoleFromSubject(subject);
         const company = match[2].trim();
         if (role && company) return { company, role, status, subject };
     }
 
-    // Format B (older layout): "application was sent to <Company>", role on the line above
     match = fullText.match(/application was sent to ([^\n]+)/i);
     if (match) {
         const company = match[1].trim();
         const escaped = company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const roleMatch = fullText.match(new RegExp(`\\n\\s*([^\\n]{3,80})\\n\\s*${escaped}\\s*[·\\-]`, 'i'));
-        const role = cleanRole(roleMatch ? roleMatch[1] : null);
+        const role = cleanRole(roleMatch ? roleMatch[1] : null) || fallbackRoleFromSubject(subject);
         if (role && company) return { company, role, status, subject };
     }
 
-    return null; // couldn't confidently extract both fields — skip rather than guess
+    return null;
 };
 
 // ============================================================
-// PARSER 2: Company / ATS emails (Accenture-Workday, Microsoft, direct career portals, etc.)
+// PARSER 2: Company / ATS emails
 // ============================================================
-
-// Domains that are ATS/platform providers, not the actual hiring company.
-// The company name must be pulled from the BODY text for these senders.
 const ATS_PLATFORM_DOMAINS = [
     'myworkdayjobs.com', 'myworkday.com', 'workday.com',
     'greenhouse.io', 'greenhouse-mail.io',
@@ -102,6 +110,8 @@ const ROLE_PATTERNS = [
     new RegExp(`position of ([A-Za-z0-9/&,\\-\\s]{2,60}?)${ROLE_TERMINATOR}`, 'i'),
     new RegExp(`application for ([A-Za-z0-9/&,\\-\\s]{2,60}?)\\s*\\(Job number`, 'i'),
     new RegExp(`application for ([A-Za-z0-9/&,\\-\\s]{2,60}?)${ROLE_TERMINATOR}`, 'i'),
+    new RegExp(`applying for.{0,5}([A-Za-z0-9/&,\\-\\s]{2,60}?)${ROLE_TERMINATOR}`, 'i'),
+    new RegExp(`for the ([A-Za-z0-9/&,\\-\\s]{2,60}?)\\s+(role|position)`, 'i'),
 ];
 
 const extractRoleFromBody = (text) => {
@@ -144,10 +154,10 @@ const parseCompanyEmail = (subject, body, from) => {
     const isAtsPlatform = ATS_PLATFORM_DOMAINS.some((p) => domain.includes(p));
 
     const company = isAtsPlatform
-        ? extractCompanyFromBody(fullText)
+        ? (extractCompanyFromBody(fullText) || extractCompanyFromSenderDomain(domain))
         : (extractCompanyFromSenderDomain(domain) || extractCompanyFromBody(fullText));
 
-    const role = extractRoleFromBody(fullText);
+    const role = extractRoleFromBody(fullText) || fallbackRoleFromSubject(subject);
 
     if (!company || !role) return null;
     return { company, role, status, subject };
