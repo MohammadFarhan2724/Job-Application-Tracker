@@ -9,8 +9,7 @@ const { checkDuplicate } = require('./application.controller');
 const STATUS_MAP = {
     'Applied': 'Applied',
     'Online Assessment': 'In Progress',
-    'Interview - Action Required': 'Interviewing',
-    'Interview Scheduled': 'Interviewing',
+    'Interviewing': 'Interviewing',
     'Offer': 'Offer',
     'Rejected': 'Rejected',
 };
@@ -54,15 +53,7 @@ const importGmailApplications = async (req, res) => {
         let created = 0, updated = 0, skipped = 0;
 
         for (const message of messages) {
-            const parsed = parseEmail(message);
-
-            // TEMP DEBUG — remove after diagnosing
-            const subject = message.payload.headers.find(h => h.name === 'Subject')?.value;
-            const from = message.payload.headers.find(h => h.name === 'From')?.value;
-            console.log('---');
-            console.log('Subject:', subject);
-            console.log('From:', from);
-            console.log('Parsed result:', parsed);
+            const parsed = await parseEmail(message);
 
             if (!parsed || !parsed.company || !parsed.role) {
                 skipped++;
