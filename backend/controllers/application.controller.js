@@ -14,7 +14,7 @@ const createApplication = async (req, res) => {
 
 const getApplication = async (req, res) => {
     try {
-        const application = await Application.find({ userId: req.user.id }) // ✅ fixed
+        const application = await Application.find({ userId: req.user.id }) // fixed
         res.status(200).json(application)
     } catch(error){
         res.status(500).json({message: error.message})
@@ -25,7 +25,7 @@ const getApplicationById = async (req, res) => {
     try {
         const application = await Application.findOne({
             _id: req.params.id,
-            userId: req.user.id  // ✅ ensures ownership
+            userId: req.user.id  // ensures ownership
         })
 
         if (!application) {
@@ -41,7 +41,7 @@ const getApplicationById = async (req, res) => {
 const updateApplication = async (req, res) => {
     try {
         const application = await Application.findOneAndUpdate(
-            { _id: req.params.id, userId: req.user.id }, // ✅ ensures ownership
+            { _id: req.params.id, userId: req.user.id }, // ensures ownership
             req.body,
             { new: true }
         )
@@ -60,7 +60,7 @@ const deleteApplication = async (req, res) => {
     try {
         const application = await Application.findOneAndDelete({
             _id: req.params.id,
-            userId: req.user.id  // ✅ ensures ownership
+            userId: req.user.id  // ensures ownership
         })
 
         if (!application) {
